@@ -1,0 +1,6 @@
+# IntelliJ IDEA specific files
+.idea/
+
+# Target directories for Maven/Gradle projects
+/target/
+/out/
