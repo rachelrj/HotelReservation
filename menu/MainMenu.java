@@ -7,7 +7,11 @@ import model.Reservation;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -78,6 +82,59 @@ public class MainMenu {
             }
         }
     }
+
+    static void checkAlternativeRooms(String email, Date checkIn, Date checkOut) {
+        int range = (int) ChronoUnit.DAYS.between(
+                checkIn.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                checkOut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        System.out.println("Searching for dates. If dates are strict, enter 'end' to abort.");
+
+        for (int i = -range; i <= range; i++) {
+            Calendar calendarIn = Calendar.getInstance();
+            calendarIn.setTime(checkIn);
+            calendarIn.add(Calendar.DAY_OF_MONTH, i);
+
+            Calendar calendarOut = Calendar.getInstance();
+            calendarOut.setTime(checkOut);
+            calendarOut.add(Calendar.DAY_OF_MONTH, i);
+
+            Date dateIn = calendarIn.getTime();
+            Date dateOut = calendarOut.getTime();
+
+            Set<IRoom> hotelInstances = hotelInstance.findARoom(dateIn, dateOut);
+
+            if (!hotelInstances.isEmpty()) {
+                System.out.println(hotelInstances + " are available from " + dateIn + " to " + dateOut);
+                System.out.println("Choose a room. Press Q to move on to new dates.");
+                System.out.println("Type 'end' to stop searching.");
+
+                boolean q = true;
+                while (q) {
+                    String roomNumber = scanner.nextLine().trim().toUpperCase();
+
+                    if (roomNumber.equals("Q")) {
+                        break;
+                    }
+                    if (roomNumber.equals("END")) {
+                        return;
+                    }
+
+                    for (IRoom room : hotelInstances) {
+                        if (room.getRoomNumber().equals(roomNumber)) {
+                            hotelInstance.bookARoom(email, room, dateIn, dateOut);
+                            System.out.println("Successfully booked room " + room.getRoomNumber() + " from " + dateIn + " to " + dateOut);
+                            return;
+                        }
+                    }
+
+                    System.out.println("Invalid choice. Try again.");
+                }
+            }
+        }
+
+        System.out.println("We're sorry. We couldn't find anything.");
+    }
+
     private static void bookARoom() {
         System.out.println("What is your email address on file?");
         String emailInput = scanner.nextLine().trim();
@@ -93,21 +150,25 @@ public class MainMenu {
             checkOutDate = checkDate("check out");
         }
         Set<IRoom> hotelInstances = hotelInstance.findARoom(checkInDate, checkOutDate);
-        System.out.println(hotelInstances + "are available");
-        System.out.println("Chose a room. Press Q to abort.");
-        Boolean q = false;
-        while (!q) {
-            String roomNumber = scanner.nextLine().trim();
-            if(roomNumber.trim().toUpperCase().equals("Q")) {
-                return;
+        if (!hotelInstances.isEmpty()) {
+            System.out.println(hotelInstances + "are available");
+            System.out.println("Chose a room. Press Q to abort.");
+            Boolean q = false;
+            while (!q) {
+                String roomNumber = scanner.nextLine().trim();
+                if(roomNumber.trim().toUpperCase().equals("Q")) {
+                    return;
+                }
+                for (IRoom room : hotelInstances) {
+                    if(room.getRoomNumber().equals(roomNumber));
+                    hotelInstance.bookARoom(emailInput, room, checkInDate, checkOutDate);
+                    System.out.println("Successfully booked");
+                    return;
+                }
+                System.out.println("Invalid choice. Try again");
             }
-            for (IRoom room : hotelInstances) {
-                if(room.getRoomNumber().equals(roomNumber));
-                hotelInstance.bookARoom(emailInput, room, checkInDate, checkOutDate);
-                System.out.println("Successfully booked");
-                return;
-            }
-            System.out.println("Invalid choice. Try again");
+        } else {
+            checkAlternativeRooms(emailInput, checkInDate, checkOutDate);
         }
     }
 
