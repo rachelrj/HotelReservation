@@ -2,8 +2,6 @@ package model;
 
 import java.util.Date;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Reservation {
     private final Customer customer;

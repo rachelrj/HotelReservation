@@ -1,7 +1,6 @@
 package service;
 
 import model.Customer;
-import model.IRoom;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +27,7 @@ public class CustomerService {
     }
 
     public Set<Customer> getAllCustomers() {
-        return new HashSet<>(customers.values()); // Return a new set with all customers
+        return new HashSet<>(customers.values());
     }
+
 }
